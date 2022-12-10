@@ -436,7 +436,7 @@ def main():
     sample_dict = {}
     # model3 = get_weights(model_embs, args)
     if True:
-        for (encoded_seq, control_helper) in zip(encoded_partial_seq, partial_seq) :
+        for (encoded_seq, control_helper) in zip(encoded_partial_seq[:10], partial_seq[:10]) :
             all_images = []
             all_labels = []
             print(args.num_samples, encoded_seq.shape, 'encoded_seq.shape')
