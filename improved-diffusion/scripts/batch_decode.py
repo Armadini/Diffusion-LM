@@ -144,6 +144,6 @@ for lst in full_lst:
 
     print(COMMAND)
     print()
-    os.system(COMMAND)
+    #os.system(COMMAND)
 print('output lists:')
 print("\n".join(output_lst))

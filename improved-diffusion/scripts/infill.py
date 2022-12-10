@@ -22,7 +22,7 @@ from improved_diffusion.script_util import (
     add_dict_to_argparser,
     args_to_dict,
 )
-sys.path.insert(0, 'diffusion_lm/transformers/examples/pytorch/language-modeling')
+sys.path.insert(0, '/home1/zabdulre/Diffusion-LM/transformers/examples/pytorch/language-modeling')
 from custom_trainer import Classifier_GPT2, Classifier_Times, Classifier_POS, Classifier_Tree
 from infill_util import langevin_fn3, get_score, langevin_fn3_compose, langevin_fn1, langevin_fn4, langevin_fn_tree, langevin_fn_length
 from spacy.lang.en import English
@@ -32,7 +32,7 @@ def main():
     args = create_argparser().parse_args()
 
     # load configurations.
-    config_path = os.path.join(os.path.split(args.model_path)[0], "training_args.json")
+    config_path = os.path.join(args.model_path, "training_args.json")
     print(config_path)
     # sys.setdefaultencoding('utf-8')
     with open(config_path, 'rb', ) as f:
@@ -51,14 +51,14 @@ def main():
     model, diffusion = create_model_and_diffusion(
         **args_to_dict(args, model_and_diffusion_defaults().keys())
     )
-    model.load_state_dict(th.load(args.model_path))
+    model.load_state_dict(th.load(args.model_path + '/model000000.pt'))
     model.to(dist_util.dev())
     model.eval()
 
     logger.log("load embedding models")
     print(os.path.split(args.model_path)[0])
     model_embs, tokenizer = load_models(args.modality, args.experiment, args.model_name_or_path, args.in_channel,
-                                   os.path.split(args.model_path)[0])
+                                   args.model_path)
     if args.training_mode.startswith('e2e'):
         print('e2e, load the right model embeddings', '*'*80)
         model_embs.weight = th.nn.Parameter(model.word_embedding.weight.clone().cpu())
@@ -314,8 +314,7 @@ def main():
                 #     'predictability/diff_models/e2e-tgt-tree_e=20_b=32_m=bert-base-uncased_'
                 #     'wikitext-103-raw-v1_101_wp_full_multi16_v2').cuda()
                 model_control = Classifier_Tree.from_pretrained(
-                    'predictability/diff_models/e2e-tgt-tree_e=20_b=32_m=bert-base-uncased_'
-                    'wikitext-103-raw-v1_101_wp_full_multi16_cat').cuda()
+                    '/home1/zabdulre/Diffusion-LM/classifier_models/e2e-tgt-tree_e=1_b=10_m=bert-base-uncased_wikitext-103-raw-v1_101_wp_None').cuda()
 
                 # print(model_control)
 
