@@ -326,7 +326,7 @@ def main():
 
                 ###############
                 control_label_lst = []
-                with open('diffusion_lm/improved-diffusion/control_gen/target_tree.json',
+                with open('/home1/zabdulre/Diffusion-LM/datasets/control_target/target_tree.json',
                           'r') as controlf:
                     for line in controlf:
                         control_label_lst.append(json.loads(line))
