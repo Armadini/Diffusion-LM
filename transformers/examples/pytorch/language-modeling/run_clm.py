@@ -46,6 +46,7 @@ from transformers import (
     TrainingArguments,
     default_data_collator,
     set_seed,
+    BertTokenizer,
 )
 from transformers.testing_utils import CaptureLogger
 from transformers.trainer_utils import get_last_checkpoint
@@ -324,10 +325,6 @@ def get_corpus_rocstory(data_args):
 
         print(sentence_lst[:2], sentence_lst[-2:])
         return sentence_lst, {}
-
-
-
-
     elif data_args.experiment.startswith('roc') and data_args.task != 'data_teacher':
         print('loading dataset from ROCStory')
         nlp = English()
@@ -374,7 +371,6 @@ def get_corpus_rocstory(data_args):
                 word_lst = row.split('||')[1]
                 sentence_lst.append(word_lst)
         print(sentence_lst[:2])
-
     elif data_args.experiment.startswith('e2e-tgt') and data_args.task == 'finetuneUNK':
         '''
             Used to evaluate fluency: first load e2e-vocab, and then UNK the oov words in the training data. 
@@ -404,7 +400,6 @@ def get_corpus_rocstory(data_args):
                 # print(word_lst1)
                 sentence_lst.append(word_lst1)
         print(sentence_lst[:2])
-
     elif data_args.experiment.startswith('e2e-tgt') and data_args.task == 'right2left':
         print('loading dataset from simple e2e dataset')
         sentence_lst = []
@@ -417,19 +412,26 @@ def get_corpus_rocstory(data_args):
                 word_lst = list(reversed([x.text for x in tokenizer(word_lst)]))
                 sentence_lst.append(word_lst)
         print(sentence_lst[:2])
-
     elif data_args.experiment.startswith('e2e-tgt'):
+        # THIS ONE
         print('loading dataset from simple e2e dataset')
-        sentence_lst = []
-        nlp = English()
-        tokenizer = nlp.tokenizer
-        path = f'{data_args.e2e_train}/src1_train.txt'
+        en_sent_list, de_sent_list, label_list = [], [], []
+        # nlp = English()
+        # tokenizer = nlp.tokenizer
+        tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+        path = f'{data_args.e2e_train}/en_de_100.txt'
         with open(path, 'r') as ff:
             for row in ff:
-                word_lst = row.split('||')[1]
-                word_lst = [x.text for x in tokenizer(word_lst)]
-                sentence_lst.append(word_lst)
-        print(sentence_lst[:2])
+                english_sent, german_sent, label = row.split('||')
+                en_word_lst = [x.text for x in tokenizer(english_sent)]
+                de_word_lst = [x.text for x in tokenizer(german_sent)]
+
+                en_sent_list.append(en_word_lst)
+                de_sent_list.append(de_word_lst)
+                label_list.append(label)
+        print(en_sent_list[:2])
+        print(de_sent_list[:2])
+        print(label_list[:2])
 
 
     elif data_args.experiment.startswith('e2e-back'):
@@ -489,12 +491,13 @@ def get_corpus_rocstory(data_args):
             counter.update(input_ids)
 
     vocab_dict = {'START': 0, 'END': 1, 'UNK':2, 'PAD':3}
+    print("COUNTER", counter)
     for k, v in counter.items():
         if v > 10:
             vocab_dict[k] = len(vocab_dict)
     print(len(counter), len(vocab_dict))
 
-    return sentence_lst, vocab_dict
+    return {"english": en_sent_list, "german": de_sent_list, "labels": label_list}, vocab_dict
 
 
 def main():
